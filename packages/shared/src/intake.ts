@@ -1,4 +1,4 @@
-import { CATEGORIES, type CategoryId } from './catalogue';
+import { CATEGORIES, categoryById, detectCategory, type CategoryId } from './catalogue';
 import type { PricingMode } from './money';
 
 /**
@@ -105,4 +105,29 @@ ${args.photoCount ? `\nUtilizatorul a atașat ${args.photoCount} fotografii.` : 
 
 Răspunde doar cu un obiect JSON:
 {"reply":"1-2 propoziții","title":"max 6 cuvinte","category":"mobilier","details":["max 5"],"duration":"~1 h 30 min","people":1,"tools":"Le aduce Jobzerul | Le are clientul | Nu sunt necesare","photo_notes":"","regulated":false,"question":{"text":"","options":["2-4 răspunsuri scurte"]},"ready":false,"price":{"mode":"fixed | hourly | quote","low":120,"high":180,"suggested":150,"hours":2,"why":"o propoziție"}}`;
+}
+
+/** Deterministic fallback with the same output contract. */
+export function rulesIntake(req: { conversation: Array<{ who: 'me' | 'ai'; text: string }>; questionsAsked: number }): IntakeDraft {
+  const first = req.conversation.find((m) => m.who === 'me')?.text ?? '';
+  const last = req.conversation.filter((m) => m.who === 'me').at(-1)?.text ?? '';
+  const det = detectCategory(first);
+  if (det.regulated) {
+    return sanitizeIntake({ reply: 'Asta pare o lucrare la instalații (electric, gaz sau apă). Cere un specialist autorizat, iar în pilot nu o putem prelua.', regulated: true }, req.questionsAsked);
+  }
+  const c = categoryById(det.category);
+  const q = c.questions[req.questionsAsked];
+  const details = [first, ...req.conversation.filter((m) => m.who === 'me').slice(1).map((m) => m.text)].slice(0, 5);
+  return sanitizeIntake({
+    reply: q ? (req.questionsAsked === 0 ? `Am înțeles: ${c.label.toLowerCase()}.` : 'Notat.') : 'Gata, am tot ce-mi trebuie. Verifică cererea și alege prețul.',
+    title: first.split(/[.!?]/)[0]?.slice(0, 50) || c.label,
+    category: c.id,
+    details,
+    duration: c.duration,
+    people: /mobilă grea|fără lift|mai multe/i.test(last) ? 2 : 1,
+    tools: 'Le aduce Jobzerul',
+    question: q ?? null,
+    ready: !q,
+    price: { mode: c.mode, low: c.estimateLei[0], high: c.estimateLei[1], suggested: Math.round((c.estimateLei[0] + c.estimateLei[1]) / 20) * 10, hours: 2, why: 'Interval obișnuit în zonă pentru sarcini asemănătoare.' },
+  }, req.questionsAsked);
 }

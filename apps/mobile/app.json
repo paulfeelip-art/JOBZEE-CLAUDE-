@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Jobzee",
+    "slug": "jobzee",
+    "scheme": "jobzee",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#FBF7F2",
+    "splash": { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#FBF7F2" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ro.jobzee.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Jobzee folosește locația ca să găsească Jobzeri aproape de tine și, dacă ești Jobzer, să-ți arate sarcini din zonă.",
+        "NSCameraUsageDescription": "Fotografiile ajută Jobzee AI să înțeleagă sarcina.",
+        "NSPhotoLibraryUsageDescription": "Poți adăuga fotografii cu ce trebuie făcut."
+      }
+    },
+    "android": {
+      "package": "ro.jobzee.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF7F2",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "CAMERA"],
+      "config": { "googleMaps": { "apiKey": "$(GOOGLE_MAPS_ANDROID_KEY)" } },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": { "bundler": "metro", "output": "single", "favicon": "./assets/favicon.png" },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      ["expo-location", { "locationWhenInUsePermission": "Jobzee folosește locația ca să găsească Jobzeri aproape de tine." }],
+      ["expo-image-picker", { "photosPermission": "Poți adăuga fotografii cu ce trebuie făcut.", "cameraPermission": "Fotografiile ajută Jobzee AI să înțeleagă sarcina." }],
+      ["@stripe/stripe-react-native", { "merchantIdentifier": "merchant.ro.jobzee", "enableGooglePay": true }]
+    ]
+  }
+}

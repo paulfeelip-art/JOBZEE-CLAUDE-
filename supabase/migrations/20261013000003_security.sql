@@ -138,8 +138,15 @@ grant execute on function public.mark_payment_authorised(uuid, text), public.mar
 insert into storage.buckets (id, name, public) values
   ('task-photos', 'task-photos', false),
   ('certificates', 'certificates', false),
-  ('job-proof', 'job-proof', false)
+  ('job-proof', 'job-proof', false),
+  ('avatars', 'avatars', true)
 on conflict (id) do nothing;
+
+-- avatars/<uid>.jpg: public profile photos, each user writes only their own.
+create policy avatars_owner_write on storage.objects for insert to authenticated
+  with check (bucket_id = 'avatars' and name = auth.uid()::text || '.jpg');
+create policy avatars_owner_update on storage.objects for update to authenticated
+  using (bucket_id = 'avatars' and name = auth.uid()::text || '.jpg');
 
 -- task-photos/<client uid>/<file>: client uploads; offered or assigned Jobzers read through signed URLs from the backend.
 create policy task_photos_owner_write on storage.objects for insert to authenticated

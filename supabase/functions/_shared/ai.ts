@@ -1,6 +1,7 @@
 // Jobzee AI: turns free text and photos into a structured request.
 // Calls the Claude Messages API; falls back to rules when unavailable.
-import { categoryById, detectCategory, intakePrompt, sanitizeIntake, type IntakeDraft } from './rules/index.ts';
+import { intakePrompt, rulesIntake, sanitizeIntake, type IntakeDraft } from './rules/index.ts';
+export { rulesIntake };
 
 export interface IntakeRequest {
   conversation: Array<{ who: 'me' | 'ai'; text: string }>;
@@ -64,29 +65,4 @@ export async function runIntake(req: IntakeRequest, opts: { apiKey?: string; mod
     }
   }
   return { ...rulesIntake(req), source: 'rules' };
-}
-
-/** Deterministic fallback with the same output contract. */
-export function rulesIntake(req: IntakeRequest): IntakeDraft {
-  const first = req.conversation.find((m) => m.who === 'me')?.text ?? '';
-  const last = req.conversation.filter((m) => m.who === 'me').at(-1)?.text ?? '';
-  const det = detectCategory(first);
-  if (det.regulated) {
-    return sanitizeIntake({ reply: 'Asta pare o lucrare la instalații (electric, gaz sau apă). Cere un specialist autorizat, iar în pilot nu o putem prelua.', regulated: true }, req.questionsAsked);
-  }
-  const c = categoryById(det.category);
-  const q = c.questions[req.questionsAsked];
-  const details = [first, ...req.conversation.filter((m) => m.who === 'me').slice(1).map((m) => m.text)].slice(0, 5);
-  return sanitizeIntake({
-    reply: q ? (req.questionsAsked === 0 ? `Am înțeles: ${c.label.toLowerCase()}.` : 'Notat.') : 'Gata, am tot ce-mi trebuie. Verifică cererea și alege prețul.',
-    title: first.split(/[.!?]/)[0]?.slice(0, 50) || c.label,
-    category: c.id,
-    details,
-    duration: c.duration,
-    people: /mobilă grea|fără lift|mai multe/i.test(last) ? 2 : 1,
-    tools: 'Le aduce Jobzerul',
-    question: q ?? null,
-    ready: !q,
-    price: { mode: c.mode, low: c.estimateLei[0], high: c.estimateLei[1], suggested: Math.round((c.estimateLei[0] + c.estimateLei[1]) / 20) * 10, hours: 2, why: 'Interval obișnuit în zonă pentru sarcini asemănătoare.' },
-  }, req.questionsAsked);
 }
