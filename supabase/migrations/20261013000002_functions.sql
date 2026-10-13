@@ -490,3 +490,18 @@ from public.offers o
 join public.tasks t on t.id = o.task_id
 join public.profiles p on p.id = t.client_id
 where o.jobzer_id = auth.uid();
+
+-- Expired offers are closed (never counted against the Jobzer) and the next candidates are invited.
+create or replace function public.expire_offers() returns int
+language plpgsql security definer set search_path = public as $$
+declare n int; r record;
+begin
+  if not public.is_service() then raise exception 'service_only' using errcode = '42501'; end if;
+  update public.offers set status = 'expired' where status = 'sent' and expires_at < now();
+  get diagnostics n = row_count;
+  for r in select t.id from public.tasks t where t.status = 'searching'
+    and not exists (select 1 from public.offers o where o.task_id = t.id and o.status = 'sent') loop
+    perform public._match_offers(r.id, 3);
+  end loop;
+  return n;
+end $$;

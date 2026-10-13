@@ -263,6 +263,17 @@ describe('cancellation and disputes', () => {
     const done = await as(db, service, (tx) => tx.query<{ auto_complete_due: string }>('select * from public.auto_complete_due()'));
     expect(done.rows.map((r) => Object.values(r)[0])).toContain(t);
   });
+  it('expired offers close without penalty and the next Jobzers are invited', async () => {
+    await as(db, j2, (tx) => tx.query('select public.set_availability(true, $1, $2)', [44.4170, 26.1600]));
+    const t = await newTask();
+    await as(db, client, (tx) => tx.query('select public.publish_task($1)', [t]));
+    await db.query("update public.offers set expires_at = now() - interval '1 minute' where task_id = $1", [t]);
+    const n = await as(db, service, (tx) => one<{ n: number }>(tx, 'select public.expire_offers() n'));
+    expect(n.n).toBeGreaterThanOrEqual(2);
+    const st = await as(db, service, (tx) => tx.query<{ status: string }>("select status from public.offers where task_id = $1", [t]));
+    expect(st.rows.every((r) => r.status === 'expired')).toBe(true);
+    await expect(as(db, client, (tx) => tx.query('select public.expire_offers()'))).rejects.toThrow();
+  });
   it('chat opens only after confirmation', async () => {
     const t = await newTask();
     await expect(as(db, client, (tx) => tx.query("select public.send_message($1,'Salut')", [t]))).rejects.toThrow(/chat_closed/);

@@ -4,11 +4,14 @@
   "private": true,
   "description": "Database migrations, RLS and edge functions, with an in-process Postgres + PostGIS test suite.",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run && npm run test:functions",
+    "test:functions": "deno test --config functions/deno.json --allow-env functions/_shared/shared.test.ts",
+    "check:functions": "deno check --config functions/deno.json functions/*/index.ts"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.9",
     "@electric-sql/pglite-postgis": "0.2.9",
+    "deno": "^2.9.6",
     "typescript": "~5.9.3",
     "vitest": "^3.2.7"
   }

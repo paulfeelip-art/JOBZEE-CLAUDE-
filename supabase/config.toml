@@ -1,0 +1,22 @@
+# Supabase CLI configuration (local development and deploy settings).
+project_id = "jobzee"
+
+[api]
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+
+[auth]
+site_url = "https://jobzee.ro"
+additional_redirect_urls = ["jobzee://", "http://localhost:3000"]
+
+[auth.sms]
+# Phone sign-in with one-time codes. Configure the SMS provider (e.g. Twilio) in the dashboard.
+enable_signup = true
+enable_confirmations = true
+
+# Stripe and the scheduler authenticate with their own secrets, not a user JWT.
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.cron-maintenance]
+verify_jwt = false

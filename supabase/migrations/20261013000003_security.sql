@@ -132,7 +132,7 @@ to authenticated;
 
 -- Service role only (edge functions with the service key).
 grant execute on function public.mark_payment_authorised(uuid, text), public.mark_payment_status(uuid, text),
-  public.auto_complete_due(), public.publish_stale_reviews(), public.match_offers(uuid, int) to service_role;
+  public.auto_complete_due(), public.publish_stale_reviews(), public.expire_offers(), public.match_offers(uuid, int) to service_role;
 
 -- ---------------------------------------------------------------- storage (Supabase Storage)
 insert into storage.buckets (id, name, public) values
