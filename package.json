@@ -10,8 +10,8 @@
   ],
   "scripts": {
     "test": "npm run test -w @jobzee/shared && npm run test -w @jobzee/supabase",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "check:sql": "python3 scripts/check_sql.py",
+    "typecheck": "npm run typecheck -w @jobzee/shared && npm run typecheck -w @jobzee/mobile && npm run typecheck -w @jobzee/web",
+    "sync:shared": "node scripts/sync-shared.mjs",
     "web": "npm run dev -w @jobzee/web",
     "mobile": "npm run start -w @jobzee/mobile"
   },

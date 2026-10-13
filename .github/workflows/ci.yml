@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Shared rules copied into edge functions are up to date
+        run: node scripts/sync-shared.mjs --check
+      - name: Unit, database and edge function tests
+        run: npm test
+      - name: Typecheck edge functions
+        run: npm run check:functions -w @jobzee/supabase
+      - name: Typecheck shared and mobile
+        run: |
+          npm run typecheck -w @jobzee/shared
+          npm run typecheck -w @jobzee/mobile
+      - name: Build web
+        run: npm run build -w @jobzee/web
