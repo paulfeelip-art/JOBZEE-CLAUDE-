@@ -1,0 +1,21 @@
+{
+  "name": "jobzee",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Jobzee: local short tasks marketplace. Clients get help, Jobzers earn.",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "supabase"
+  ],
+  "scripts": {
+    "test": "npm run test -w @jobzee/shared && npm run test -w @jobzee/supabase",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "check:sql": "python3 scripts/check_sql.py",
+    "web": "npm run dev -w @jobzee/web",
+    "mobile": "npm run start -w @jobzee/mobile"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

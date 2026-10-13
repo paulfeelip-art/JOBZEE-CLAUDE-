@@ -1,0 +1,15 @@
+{
+  "name": "@jobzee/supabase",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Database migrations, RLS and edge functions, with an in-process Postgres + PostGIS test suite.",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.9",
+    "@electric-sql/pglite-postgis": "0.2.9",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
