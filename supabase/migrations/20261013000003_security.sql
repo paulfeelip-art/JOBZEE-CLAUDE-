@@ -125,6 +125,7 @@ grant execute on function
   public.respond_extra(uuid, boolean), public.finish_task(uuid), public.complete_task(uuid),
   public.cancel_task(uuid, text), public.open_dispute(uuid, text), public.report_incident(uuid, text, text, int),
   public.ops_resolve(uuid, public.task_status, text), public.send_message(uuid, text),
+  public.ops_review_certificate(uuid, boolean), public.ops_set_checks(uuid, boolean, boolean, boolean),
   public.submit_review(uuid, int, text[], text), public.reply_review(uuid, text),
   public.fee_service(int), public.fee_commission(int), public.hourly_charge(int, int, int), public.tier_index(int, float8, int, boolean, boolean),
   public.is_ops(), public.is_service(), public.has_contact_details(text)

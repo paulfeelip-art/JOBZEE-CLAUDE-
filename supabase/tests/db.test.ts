@@ -194,6 +194,16 @@ describe('access control', () => {
   it('Jobzers cannot verify themselves', async () => {
     await expect(as(db, j2, (tx) => tx.query('update public.jobzers set id_verified=true, insured=true where id=$1', [J2]))).rejects.toThrow(/permission denied/);
   });
+  it('ops verify certificates; then "Calificat" is allowed', async () => {
+    const ops: Who = { uid: OPS, role: 'authenticated' };
+    const cert = await as(db, j1, (tx) => one<{ id: string }>(tx, "insert into public.certificates (jobzer_id, category, name, file_path) values ($1,'tehnic','Atestat IT','x/1.pdf') returning id", [J1]));
+    await expect(as(db, j1, (tx) => tx.query('select public.ops_review_certificate($1,true)', [cert.id]))).rejects.toThrow(/ops_only/);
+    await as(db, ops, (tx) => tx.query('select public.ops_review_certificate($1,true)', [cert.id]));
+    await as(db, j1, (tx) => tx.query("insert into public.jobzer_skills (jobzer_id, category, level) values ($1,'tehnic','calificat')", [J1]));
+    const s = await as(db, j1, (tx) => one<{ level: string }>(tx, "select level from public.jobzer_skills where jobzer_id=$1 and category='tehnic'", [J1]));
+    expect(s.level).toBe('calificat');
+    await as(db, ops, (tx) => tx.query('select public.ops_set_checks($1,true,true,true)', [J2]));
+  });
   it('"Calificat" needs a verified certificate', async () => {
     await as(db, j2, (tx) => tx.query("insert into public.jobzer_skills (jobzer_id, category, level) values ($1,'tehnic','calificat')", [J2]));
     const s = await as(db, j2, (tx) => one<{ level: string }>(tx, "select level from public.jobzer_skills where jobzer_id=$1 and category='tehnic'", [J2]));

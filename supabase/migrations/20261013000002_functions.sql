@@ -505,3 +505,23 @@ begin
   end loop;
   return n;
 end $$;
+
+-- ---------------------------------------------------------------- operations console
+create or replace function public.ops_review_certificate(p_cert uuid, p_approve boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare c public.certificates;
+begin
+  if not public.is_ops() then raise exception 'ops_only' using errcode = '42501'; end if;
+  update public.certificates set status = case when p_approve then 'verified' else 'rejected' end::public.cert_status,
+    reviewed_by = auth.uid(), reviewed_at = now() where id = p_cert returning * into c;
+  if not found then raise exception 'certificate_not_found' using errcode = 'P0002'; end if;
+  -- Re-run the level check so an approved certificate can unlock "Calificat" when the Jobzer asks for it again.
+end $$;
+
+create or replace function public.ops_set_checks(p_jobzer uuid, p_id_verified boolean, p_background_checked boolean, p_insured boolean) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_ops() then raise exception 'ops_only' using errcode = '42501'; end if;
+  update public.jobzers set id_verified = p_id_verified, background_checked = p_background_checked, insured = p_insured where id = p_jobzer;
+  if not found then raise exception 'jobzer_not_found' using errcode = 'P0002'; end if;
+end $$;
